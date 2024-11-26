@@ -1,0 +1,38 @@
+<div class="section text-center">
+  <div class="container">
+    <div class="row">
+      <div class="col-md-8 mr-auto ml-auto">
+        <h2
+          class="title"
+          style="
+            color: #315a79;
+            box-shadow: 0px 4px 0px rgba(210, 179, 86, 0.8);
+          "
+        >
+          Estate Recoveries ID Verification Tool
+        </h2>
+      </div>
+    </div>
+    <br />
+    <br />
+    <input id="searchBar"type="text" class="form-control" placeholder="Enter ID Number" [(ngModel)]="idNumber" maxlength="13" (keydown)="onKeyDown($event)" />
+    <br />
+    <button (click)="onSearch()" class="btn btn-outline-neutral btn-round" style="color: #d2b356; border-color: #315a79;"><i class="nc-icon nc-zoom-split" _ngcontent-xyu-c48=""></i> SEARCH</button>
+    <p>
+      No data you enter is stored - it's not even sent to a server. The
+      validation and calculations are done right on your phone/computer. This
+      makes it the safest and most secure way to check validity of South African
+      Identification Numbers.
+    </p>
+    <div *ngIf="result">
+      <p><strong>Date of Birth:</strong> {{ result.dob | date: 'yyyy-MM-dd' }}</p>
+      <p><strong>Age:</strong> {{ result.age }}</p>
+      <p><strong>Gender:</strong> {{ result.gender }}</p>
+      <p><strong>Citizenship:</strong> {{ result.citizenship }}</p>
+      <p *ngIf="result.error" class="error" style="color: red;">
+        {{ result.error }}
+      </p>
+      <p><strong>Valid:</strong> {{ result.isValid ? 'Yes' : 'No' }}</p>
+    </div>
+  </div>
+</div>

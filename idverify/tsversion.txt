@@ -1,0 +1,139 @@
+import { Component, OnInit } from '@angular/core';
+import * as moment from 'moment';
+
+// Interface for validation result
+interface ValidationResult {
+  dob: Date | null;
+  age: number | null;
+  gender: string | null;
+  citizenship: string | null;
+  race: string | null;
+  error: string | null;
+  isValid: boolean | null;
+}
+
+@Component({
+  selector: 'app-idverify',
+  templateUrl: './idverify.component.html',
+  styleUrls: ['./idverify.component.scss']
+})
+export class IdVerifyComponent implements OnInit {
+  idNumber: string | null = null;
+  result: ValidationResult | null = null;
+  loading: boolean = false;
+  focus: any;
+  focus1: any;
+
+  constructor() { }
+
+  ngOnInit(): void { }
+
+  isNumber(value: any): boolean {
+    return !isNaN(parseFloat(value)) && isFinite(value);
+  }
+
+  onIdNumberChange(newValue: string): void {
+    if (newValue.length === 13) {
+      this.loading = true;
+
+      setTimeout(() => {
+        this.result = this.checkIdNumber(newValue);
+        this.loading = false;
+      }, 700); // Simulate delay for validation
+    } else {
+      this.result = null;
+
+      if (newValue.length > 13) {
+        this.idNumber = newValue.substring(0, 13);
+      }
+    }
+  }
+
+  clearFields(): void {
+    this.idNumber = null;
+    this.result = null;
+
+    const element = document.getElementById('searchBox') as HTMLElement;
+    if (element) {
+      element.focus();
+    }
+  }
+
+  // Method to validate and extract ID details
+  checkIdNumber(num: string): ValidationResult {
+    const result: ValidationResult = {
+      dob: null,
+      age: null,
+      gender: null,
+      citizenship: null,
+      race: null,
+      error: null,
+      isValid: null
+    };
+
+    const substrings = {
+      dob: num.substring(0, 6),
+      gender: num.substring(6, 7),
+      citizenship: num.substring(10, 11),
+      race: num.substring(11, 12)
+    };
+
+    // Calculate DOB and age
+    const yy = parseInt(num.substring(0, 2), 10);
+    const cc = yy <= parseInt(moment().format('YY'), 10) ? '20' : '19';
+    const dob = `${cc}${yy}-${num.substring(2, 4)}-${num.substring(4, 6)}`;
+    result.dob = moment(dob, "YYYY-MM-DD").toDate();
+    result.age = moment().diff(moment(dob, "YYYY-MM-DD"), 'years');
+
+    // Validate DOB
+    if (isNaN(result.age)) {
+      result.error = 'Invalid ID Number - gender could not be determined';
+      return result;
+    }
+
+    // Gender
+    const genderDigit = parseInt(substrings.gender, 10);
+    if (genderDigit >= 0 && genderDigit <= 4) {
+      result.gender = 'Female';
+    } else if (genderDigit >= 5 && genderDigit <= 9) {
+      result.gender = 'Male';
+    } else {
+      result.error = 'Invalid ID Number - gender could not be determined';
+      return result;
+    }
+
+    // Citizenship
+    const citizenshipDigit = parseInt(substrings.citizenship, 10);
+    result.citizenship = ['SA Citizen', 'Non-SA Citizen', 'Refugee'][citizenshipDigit] || null;
+
+    if (!result.citizenship) {
+      result.error = 'Invalid ID Number - citizenship could not be determined';
+      return result;
+    }
+
+    // Race (Optional)
+    const raceDigit = parseInt(substrings.race, 10);
+    result.race = raceDigit === 8 ? 'White' : raceDigit === 9 ? 'Black' : null;
+
+    // Validate ID
+    result.isValid = this.isValidSAId(num);
+    return result;
+  }
+
+  // Helper methods for checksum validation
+  private isValidSAId(idNumber: string): boolean {
+    if (idNumber.length !== 13) return false;
+
+    const digits = idNumber.split('').map(char => parseInt(char, 10));
+    const oddSum = digits.filter((_, idx) => idx % 2 === 0).reduce((sum, n) => sum + n, 0);
+    const evenString = digits.filter((_, idx) => idx % 2 === 1).join('');
+    const evenSum = this.sumStringDigits((parseInt(evenString, 10) * 2).toString());
+    const totalSum = oddSum + evenSum;
+
+    return totalSum % 10 === 0;
+  }
+
+  private sumStringDigits(value: string): number {
+    return value.split('').reduce((sum, char) => sum + parseInt(char, 10), 0);
+  }
+}
