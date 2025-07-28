@@ -37,7 +37,7 @@ companies = soup.findAll("div", attrs={"class": "logoT"})
 companies_text = set(company.text.strip() for company in companies)
 
 # File to save companies
-filename = "EstateRecoverys\companies.txt"
+filename = "companies.txt"
 
 # Read existing companies from file
 existing_companies = read_companies_from_file(filename)
